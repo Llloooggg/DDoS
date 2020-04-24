@@ -3,3 +3,5 @@
 ./vscode
 ./data.db
 ./__pycache__
+./map.txt
+./maps
