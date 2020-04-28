@@ -63,11 +63,8 @@ if __name__ == '__main__':
 
     subUrls = url_grab(url)
 
-    speed = input(datetime.now().strftime(
-        '[%X] ') + 'Введите скорость запросов(з/с) или оставьте пустым для максимальной: ')
-    requestCount = int(input(datetime.now().strftime(
-        '[%X] ') + 'Введите число запросов: '))
-    print()
+    speed = input(f'{datetime.now().strftime("[%X]")} Введите скорость запросов(з/с) или оставьте пустым для максимальной: ')
+    requestCount = int(input(f'{datetime.now().strftime("[%X]")} Введите число запросов: '))
 
     requestCountExecuted = 0
     requestCountSuccess = 0
@@ -75,7 +72,7 @@ if __name__ == '__main__':
     with progressbar.ProgressBar(max_value=requestCount) as bar:
         startTime = time.time()
         if speed:
-            speed = int(speed)
+            speed = float(speed)
             for i in range(requestCount):
                 delayStartTime = time.time()
                 curUrl = random.choice(subUrls)
@@ -83,8 +80,8 @@ if __name__ == '__main__':
                 thread.start()
                 thread.join()
                 bar.update(requestCountExecuted)
-                if time.time() - delayStartTime < 1 / speed:
-                    time.sleep(1 / speed - time.time() + delayStartTime)
+                while time.time() - delayStartTime < 1 / speed:
+                    pass
         else:
             for i in range(requestCount):
                 curUrl = random.choice(subUrls)
@@ -96,7 +93,8 @@ if __name__ == '__main__':
         while requestCountExecuted < requestCount:
             bar.update(requestCountExecuted)
 
-    print(datetime.now().strftime(
-        '[%X] ') + 'Успешных запросов: ' + str(requestCountSuccess))
-    print(datetime.now().strftime('[%X] ') + 'Средняя скорость: ' + str(
-        round(requestCountExecuted / (time.time() - startTime))) + ' з/с')
+    endTime = time.time() - startTime
+    print(endTime)
+
+    print(f'{datetime.now().strftime("[%X]")} Успешных запросов: {requestCountSuccess}')
+    print(f'{datetime.now().strftime("[%X]")} Средняя скорость: {round(requestCountExecuted / endTime, 2)} з/с')
