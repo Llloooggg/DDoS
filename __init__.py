@@ -1,6 +1,7 @@
 #!venv/bin/python3
 
 import os
+import sys
 import link_extractor
 import time
 import random
@@ -12,24 +13,25 @@ from threading import Thread
 
 global requestCountSuccess, requestCountExecuted
 
-if not os.path.exists('./maps/'):
-    os.makedirs('./maps/')
+script_path = os.path.abspath(os.path.dirname(sys.argv[0]))
+
+if not os.path.exists(f'{script_path}/maps/'):
+    os.makedirs(f'{script_path}/maps/')
 
 devnull = open('/dev/null', 'w')
 
-
 def url_grab(full_url):
 
-    if os.path.exists(f'./maps/{url}'):
+    if os.path.exists(f'{script_path}/maps/{url}'):
 
-        with open(f'./maps/{url}', 'r') as f:
+        with open(f'{script_path}/maps/{url}', 'r') as f:
             subUrls = f.read().splitlines()
     else:
 
         subUrls = link_extractor.extractor('http://' + url)
 
-        os.mknod(f'./maps/{url}')
-        with open(f'./maps/{url}', 'w') as f:
+        os.mknod(f'{script_path}/maps/{url}')
+        with open(f'{script_path}/maps/{url}', 'w') as f:
             for link in subUrls:
                 print(link.strip(), file=f)
 
@@ -58,8 +60,8 @@ class DDoSer(Thread):
 
 if __name__ == '__main__':
 
-    # url = input(datetime.now().strftime('[%x %X] ') + 'Введите адрес сайта: ')
-    url = '192.168.56.102'
+    url = input(f'{datetime.now().strftime("[%X]")} Введите адрес сайта: ')
+    # url = '192.168.56.102'
 
     subUrls = url_grab(url)
 
