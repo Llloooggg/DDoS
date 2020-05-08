@@ -17,8 +17,7 @@ script_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 if not os.path.exists(f'{script_path}/maps/'):
     os.makedirs(f'{script_path}/maps/')
-
-devnull = open('/dev/null', 'w')
+    
 
 def url_grab(full_url):
 
@@ -65,8 +64,10 @@ if __name__ == '__main__':
 
     subUrls = url_grab(url)
 
-    speed = input(f'{datetime.now().strftime("[%X]")} Введите скорость запросов(з/с) или оставьте пустым для максимальной: ')
-    requestCount = int(input(f'{datetime.now().strftime("[%X]")} Введите число запросов: '))
+    speed = input(
+        f'{datetime.now().strftime("[%X]")} Введите скорость запросов(з/с) или оставьте пустым для максимальной: ')
+    requestCount = int(
+        input(f'{datetime.now().strftime("[%X]")} Введите число запросов: '))
 
     requestCountExecuted = 0
     requestCountSuccess = 0
@@ -98,5 +99,7 @@ if __name__ == '__main__':
     endTime = time.time() - startTime
     print(endTime)
 
-    print(f'{datetime.now().strftime("[%X]")} Успешных запросов: {requestCountSuccess}')
-    print(f'{datetime.now().strftime("[%X]")} Средняя скорость: {round(requestCountExecuted / endTime, 2)} з/с')
+    print(
+        f'{datetime.now().strftime("[%X]")} Успешных запросов: {requestCountSuccess}')
+    print(
+        f'{datetime.now().strftime("[%X]")} Средняя скорость: {round(requestCountExecuted / endTime, 2)} з/с')
